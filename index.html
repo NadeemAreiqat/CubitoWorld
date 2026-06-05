@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Cubito World</title>
+<meta name="description" content="Cubito World — an adventure game coming to Steam. Wishlist now!"/>
+<meta property="og:title" content="Cubito World"/>
+<meta property="og:description" content="Cubito World — coming to Steam. Wishlist now!"/>
+<meta property="og:image" content="Images/Logo.png"/>
+<link rel="icon" href="Images/Logo.png" type="image/png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --gold:#f5c842;
+  --gold2:#e8a820;
+  --gold-glow:rgba(245,200,66,.22);
+  --orange:#f97316;
+  --orange-glow:rgba(249,115,22,.18);
+  --bg-dark:#07101e;
+  --bg-card:rgba(10,20,38,.82);
+  --border:rgba(245,200,66,.18);
+  --border2:rgba(255,255,255,.07);
+  --text:#f0e8d0;
+  --text2:#b8a98a;
+  --text3:#7a6e5a;
+  --green:#4ade80;
+  --green-glow:rgba(74,222,128,.15);
+  --radius:14px;
+  --font-title:'Cinzel Decorative',Georgia,serif;
+  --font-display:'Cinzel',Georgia,serif;
+  --font-body:'Nunito',sans-serif;
+}
+
+html{scroll-behavior:smooth}
+
+body{
+  background:var(--bg-dark);
+  color:var(--text);
+  font-family:var(--font-body);
+  font-size:15px;
+  line-height:1.7;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* ── BACKGROUND ── */
+.bg-layer{
+  position:fixed;inset:0;z-index:0;
+  background:url('Images/Background.png') center center/cover no-repeat;
+  filter:brightness(.28) saturate(.7);
+}
+.bg-overlay{
+  position:fixed;inset:0;z-index:1;
+  background:
+    radial-gradient(ellipse 90% 60% at 50% 0%,rgba(245,200,66,.06) 0%,transparent 65%),
+    radial-gradient(ellipse 70% 50% at 80% 100%,rgba(249,115,22,.05) 0%,transparent 65%),
+    linear-gradient(180deg,rgba(7,16,30,.55) 0%,rgba(7,16,30,.1) 40%,rgba(7,16,30,.85) 100%);
+  pointer-events:none;
+}
+/* scanline grain overlay */
+.bg-grain{
+  position:fixed;inset:0;z-index:2;pointer-events:none;opacity:.032;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:160px 160px;
+}
+
+/* ── NAV ── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 40px;
+  background:rgba(7,16,30,.72);
+  backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+}
+.nav-logo{
+  display:flex;align-items:center;gap:11px;text-decoration:none;
+}
+.nav-logo img{
+  width:36px;height:36px;border-radius:8px;object-fit:contain;
+  border:1.5px solid var(--gold);
+  box-shadow:0 0 14px var(--gold-glow);
+}
+.nav-logo-text{
+  font-family:var(--font-display);font-size:17px;font-weight:700;
+  color:var(--text);letter-spacing:.5px;
+}
+.nav-logo-text span{color:var(--gold);}
+
+.nav-links{
+  display:flex;align-items:center;gap:6px;
+}
+.nav-link{
+  font-family:var(--font-display);font-size:11.5px;font-weight:600;
+  letter-spacing:1.2px;text-transform:uppercase;
+  color:var(--text2);text-decoration:none;
+  padding:7px 16px;border-radius:99px;
+  border:1px solid transparent;
+  transition:color .2s,border-color .2s,background .2s;
+}
+.nav-link:hover{color:var(--gold);border-color:var(--border);background:var(--gold-glow);}
+
+.nav-cta{
+  font-family:var(--font-display);font-size:11px;font-weight:700;
+  letter-spacing:1.4px;text-transform:uppercase;
+  color:var(--bg-dark);text-decoration:none;
+  padding:8px 20px;border-radius:99px;
+  background:linear-gradient(135deg,var(--gold),var(--gold2));
+  box-shadow:0 0 18px var(--gold-glow);
+  transition:transform .2s,box-shadow .2s;
+  white-space:nowrap;
+}
+.nav-cta:hover{transform:translateY(-2px);box-shadow:0 4px 28px rgba(245,200,66,.38);}
+
+/* hamburger */
+.nav-hamburger{
+  display:none;flex-direction:column;gap:5px;cursor:pointer;
+  padding:6px;border:none;background:none;
+}
+.nav-hamburger span{
+  display:block;width:24px;height:2px;
+  background:var(--text2);border-radius:2px;
+  transition:transform .3s,opacity .3s;
+}
+.nav-mobile-menu{
+  display:none;flex-direction:column;gap:4px;
+  position:fixed;top:65px;left:0;right:0;z-index:99;
+  background:rgba(7,16,30,.97);backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  padding:16px 20px 20px;
+}
+.nav-mobile-menu.open{display:flex;}
+.nav-mobile-menu .nav-link{
+  font-size:13px;padding:12px 18px;border-radius:8px;
+  border:1px solid var(--border2);
+}
+.nav-mobile-menu .nav-cta{
+  text-align:center;padding:13px;border-radius:8px;font-size:12px;
+  margin-top:4px;
+}
+
+/* ── HERO ── */
+.hero{
+  position:relative;z-index:10;
+  min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;
+  padding:120px 20px 80px;
+}
+
+.hero-logo{
+  width:clamp(180px,30vw,300px);
+  height:clamp(180px,30vw,300px);
+  object-fit:contain;
+  margin-bottom:32px;
+  animation:floatLogo 5s ease-in-out infinite;
+}
+@keyframes floatLogo{
+  0%,100%{transform:translateY(0);}
+  50%{transform:translateY(-10px);}
+}
+
+.hero-eyebrow{
+  font-family:var(--font-display);font-size:11px;font-weight:600;
+  letter-spacing:3.5px;text-transform:uppercase;
+  color:var(--gold);opacity:.8;
+  margin-bottom:14px;
+  animation:fadeUp .8s .1s both;
+}
+
+.hero-title{
+  font-family:var(--font-title);
+  font-size:clamp(38px,9vw,88px);
+  font-weight:900;
+  line-height:1.05;
+  letter-spacing:-.5px;
+  color:var(--text);
+  margin-bottom:10px;
+  animation:fadeUp .8s .2s both;
+}
+.hero-title span{
+  color:var(--gold);
+  text-shadow:0 0 40px rgba(245,200,66,.5);
+}
+
+.hero-subtitle{
+  font-family:var(--font-display);
+  font-size:clamp(13px,2.5vw,18px);
+  font-weight:600;letter-spacing:2.5px;text-transform:uppercase;
+  color:var(--text2);
+  margin-bottom:28px;
+  animation:fadeUp .8s .3s both;
+}
+
+.hero-desc{
+  max-width:560px;
+  font-size:clamp(14px,2vw,16px);
+  color:var(--text2);
+  line-height:1.8;
+  margin-bottom:44px;
+  animation:fadeUp .8s .4s both;
+}
+
+.hero-buttons{
+  display:flex;flex-wrap:wrap;gap:14px;justify-content:center;
+  animation:fadeUp .8s .5s both;
+}
+
+.btn-steam{
+  display:inline-flex;align-items:center;gap:10px;
+  font-family:var(--font-display);font-size:13px;font-weight:700;
+  letter-spacing:1.2px;text-transform:uppercase;
+  text-decoration:none;
+  padding:16px 34px;
+  border-radius:var(--radius);
+  background:linear-gradient(135deg,var(--gold) 0%,var(--gold2) 100%);
+  color:var(--bg-dark);
+  box-shadow:0 4px 32px rgba(245,200,66,.35),0 0 0 0 var(--gold);
+  transition:transform .2s,box-shadow .2s;
+  position:relative;overflow:hidden;
+}
+.btn-steam::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,.18),transparent);
+  opacity:0;transition:opacity .2s;
+}
+.btn-steam:hover{transform:translateY(-3px);box-shadow:0 8px 48px rgba(245,200,66,.5);}
+.btn-steam:hover::before{opacity:1;}
+.btn-steam svg{width:20px;height:20px;flex-shrink:0;}
+
+.btn-resources{
+  display:inline-flex;align-items:center;gap:10px;
+  font-family:var(--font-display);font-size:13px;font-weight:700;
+  letter-spacing:1.2px;text-transform:uppercase;
+  text-decoration:none;
+  padding:16px 34px;
+  border-radius:var(--radius);
+  background:transparent;
+  color:var(--text);
+  border:1.5px solid var(--border);
+  backdrop-filter:blur(8px);
+  transition:transform .2s,border-color .2s,background .2s,box-shadow .2s;
+}
+.btn-resources:hover{
+  transform:translateY(-3px);
+  border-color:var(--gold);
+  background:var(--gold-glow);
+  box-shadow:0 4px 24px var(--gold-glow);
+}
+.btn-resources svg{width:18px;height:18px;flex-shrink:0;opacity:.8;}
+
+.hero-scroll{
+  position:absolute;bottom:36px;left:0;right:0;
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  color:var(--text3);font-size:10px;letter-spacing:2px;text-transform:uppercase;
+  font-family:var(--font-display);font-weight:600;
+  white-space:nowrap;
+  animation:fadeUp 1s 1s both;
+}
+.hero-scroll-dot{
+  width:1px;height:40px;
+  background:linear-gradient(to bottom,var(--gold),transparent);
+  animation:scrollPulse 2s ease-in-out infinite;
+}
+@keyframes scrollPulse{0%,100%{opacity:.4;transform:scaleY(1);}50%{opacity:1;transform:scaleY(1.2);}}
+
+/* ── DIVIDER ── */
+.section-divider{
+  position:relative;z-index:10;
+  display:flex;align-items:center;gap:16px;
+  padding:0 40px;margin:0 auto;max-width:1100px;
+}
+.section-divider::before,.section-divider::after{
+  content:'';flex:1;height:1px;
+  background:linear-gradient(to right,transparent,var(--border),transparent);
+}
+.section-divider-icon{
+  width:8px;height:8px;border-radius:2px;
+  background:var(--gold);
+  box-shadow:0 0 10px var(--gold);
+  transform:rotate(45deg);
+  flex-shrink:0;
+}
+
+/* ── FEATURES ── */
+.section{
+  position:relative;z-index:10;
+  padding:80px 20px;
+  max-width:1100px;margin:0 auto;
+}
+
+.section-label{
+  font-family:var(--font-display);font-size:10.5px;font-weight:700;
+  letter-spacing:3px;text-transform:uppercase;
+  color:var(--gold);opacity:.75;
+  margin-bottom:10px;text-align:center;
+}
+.section-title{
+  font-family:var(--font-display);font-size:clamp(22px,4vw,36px);
+  font-weight:700;color:var(--text);
+  text-align:center;margin-bottom:12px;letter-spacing:.3px;
+}
+.section-title span{color:var(--gold);}
+.section-body{
+  font-size:15px;color:var(--text2);
+  text-align:center;max-width:560px;margin:0 auto 52px;line-height:1.8;
+}
+
+.features-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:20px;
+}
+
+.feature-card{
+  background:var(--bg-card);
+  border:1px solid var(--border2);
+  border-radius:var(--radius);
+  padding:28px 26px;
+  position:relative;overflow:hidden;
+  transition:transform .25s,border-color .25s,box-shadow .25s;
+}
+.feature-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(to right,transparent,var(--gold),transparent);
+  opacity:0;transition:opacity .25s;
+}
+.feature-card:hover{
+  transform:translateY(-5px);
+  border-color:var(--border);
+  box-shadow:0 12px 48px rgba(0,0,0,.5),0 0 0 1px var(--border);
+}
+.feature-card:hover::before{opacity:1;}
+
+.feature-icon{
+  font-size:32px;margin-bottom:16px;display:block;
+  filter:drop-shadow(0 0 8px var(--gold-glow));
+}
+.feature-title{
+  font-family:var(--font-display);font-size:15px;font-weight:700;
+  color:var(--text);margin-bottom:8px;letter-spacing:.3px;
+}
+.feature-desc{font-size:13.5px;color:var(--text2);line-height:1.7;}
+
+/* ── CTA BANNER ── */
+.cta-banner{
+  position:relative;z-index:10;
+  margin:20px auto 80px;
+  max-width:900px;padding:0 20px;
+}
+.cta-inner{
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  border-radius:20px;
+  padding:52px 40px;
+  text-align:center;
+  position:relative;overflow:hidden;
+}
+.cta-inner::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(245,200,66,.07),transparent 60%);
+  pointer-events:none;
+}
+.cta-title{
+  font-family:var(--font-title);font-size:clamp(22px,5vw,40px);
+  font-weight:900;color:var(--text);margin-bottom:12px;
+}
+.cta-title span{color:var(--gold);}
+.cta-sub{font-size:15px;color:var(--text2);margin-bottom:36px;max-width:480px;margin-left:auto;margin-right:auto;}
+.cta-badges{
+  display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-bottom:36px;
+}
+.badge{
+  font-family:var(--font-display);font-size:10px;font-weight:700;
+  letter-spacing:1.2px;text-transform:uppercase;
+  padding:5px 14px;border-radius:99px;
+  border:1px solid var(--border);
+  color:var(--text2);background:rgba(255,255,255,.04);
+}
+.badge-gold{border-color:rgba(245,200,66,.35);color:var(--gold);background:rgba(245,200,66,.07);}
+
+/* ── FOOTER ── */
+footer{
+  position:relative;z-index:10;
+  border-top:1px solid var(--border2);
+  padding:40px 20px;
+  text-align:center;
+}
+.footer-logo{
+  font-family:var(--font-display);font-size:20px;font-weight:700;
+  color:var(--text);letter-spacing:.5px;margin-bottom:16px;
+}
+.footer-logo span{color:var(--gold);}
+.footer-links{
+  display:flex;flex-wrap:wrap;justify-content:center;gap:4px;
+  margin-bottom:20px;
+}
+.footer-link{
+  font-family:var(--font-display);font-size:11px;font-weight:600;
+  letter-spacing:1px;text-transform:uppercase;
+  color:var(--text3);text-decoration:none;
+  padding:5px 12px;border-radius:99px;
+  transition:color .2s;
+}
+.footer-link:hover{color:var(--gold);}
+.footer-copy{
+  font-size:12px;color:var(--text3);line-height:1.8;
+}
+.footer-copy span{color:var(--gold);}
+.footer-legal{
+  max-width:640px;margin:14px auto 0;
+  font-size:11px;color:var(--text3);line-height:1.7;opacity:.7;
+}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(22px);}
+  to{opacity:1;transform:none;}
+}
+
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .6s ease,transform .6s ease;}
+.reveal.visible{opacity:1;transform:none;}
+
+/* ── MOBILE ── */
+@media(max-width:700px){
+  nav{padding:12px 18px;}
+  .nav-links{display:none;}
+  .nav-hamburger{display:flex;}
+
+  .hero{padding:100px 18px 70px;}
+  .hero-buttons{flex-direction:column;align-items:center;width:100%;}
+  .btn-steam,.btn-resources{width:100%;max-width:320px;justify-content:center;}
+
+  .section{padding:60px 18px;}
+  .cta-inner{padding:36px 22px;}
+  .section-divider{padding:0 18px;}
+  footer{padding:32px 18px;}
+}
+</style>
+</head>
+<body>
+
+<div class="bg-layer"></div>
+<div class="bg-overlay"></div>
+<div class="bg-grain"></div>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">
+    <img src="Images/Logo.png" alt="Cubito World"/>
+    <span class="nav-logo-text">Cubito <span>World</span></span>
+  </a>
+  <div class="nav-links">
+    <a href="#features" class="nav-link">Features</a>
+    <a href="#resources" class="nav-link">Resources</a>
+    <a href="CubitoResourceExport/index.html" class="nav-link" target="_blank">Game Resources</a>
+    <a href="https://store.steampowered.com/wishlist/" class="nav-cta" target="_blank" rel="noopener">
+      ★ Wishlist on Steam
+    </a>
+  </div>
+  <button class="nav-hamburger" id="hamburger" aria-label="Open menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<div class="nav-mobile-menu" id="mobileMenu">
+  <a href="#features" class="nav-link" onclick="closeMobile()">Features</a>
+  <a href="#resources" class="nav-link" onclick="closeMobile()">Resources</a>
+  <a href="CubitoResourceExport/index.html" class="nav-link" target="_blank" onclick="closeMobile()">Game Resources</a>
+  <a href="https://store.steampowered.com/wishlist/" class="nav-cta" target="_blank" rel="noopener" onclick="closeMobile()">★ Wishlist on Steam</a>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <img src="Images/Logo.png" alt="Cubito World" class="hero-logo"/>
+  <p class="hero-eyebrow">Coming Soon to Steam</p>
+  <h1 class="hero-title">Cubito <span>World</span></h1>
+  <p class="hero-subtitle">Adventure &nbsp;·&nbsp; Explore &nbsp;·&nbsp; Survive</p>
+  <p class="hero-desc">
+    A rich and vibrant world full of secrets to discover, resources to collect,
+    and dangers to overcome. Build your legacy in Cubito World.
+  </p>
+  <div class="hero-buttons">
+    <a href="https://store.steampowered.com/wishlist/" class="btn-steam" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.979 0C5.678 0 .511 4.86.022 11.037l6.432 2.658c.545-.371 1.203-.59 1.912-.59.063 0 .125.004.188.006l2.861-4.142V8.91c0-2.495 2.028-4.524 4.524-4.524 2.494 0 4.524 2.029 4.524 4.524s-2.03 4.525-4.524 4.525h-.105l-4.076 2.911c0 .052.004.105.004.159 0 1.875-1.515 3.396-3.39 3.396-1.635 0-3.016-1.173-3.331-2.727L.436 15.27C1.862 20.307 6.486 24 11.979 24c6.627 0 11.999-5.373 11.999-12S18.605 0 11.979 0zM7.54 18.21l-1.473-.61c.262.543.714.999 1.314 1.25 1.297.539 2.793-.076 3.332-1.375.263-.63.264-1.319.005-1.949s-.75-1.121-1.377-1.383c-.624-.26-1.29-.249-1.878-.03l1.523.63c.956.4 1.409 1.497 1.009 2.455-.397.957-1.497 1.41-2.454 1.012H7.54zm11.415-9.303c0-1.662-1.353-3.015-3.015-3.015-1.665 0-3.015 1.353-3.015 3.015 0 1.665 1.35 3.015 3.015 3.015 1.663 0 3.015-1.35 3.015-3.015zm-5.273.016c0-1.252 1.013-2.266 2.265-2.266 1.249 0 2.266 1.014 2.266 2.266 0 1.251-1.017 2.265-2.266 2.265-1.252 0-2.265-1.014-2.265-2.265z"/></svg>
+      Wishlist on Steam
+    </a>
+    <a href="CubitoResourceExport/index.html" class="btn-resources" target="_blank">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Browse Game Resources
+    </a>
+  </div>
+  <div class="hero-scroll">
+    <div class="hero-scroll-dot"></div>
+    Scroll
+  </div>
+</section>
+
+<div class="section-divider"><div class="section-divider-icon"></div></div>
+
+<!-- FEATURES -->
+<section class="section" id="features">
+  <p class="section-label reveal">What Awaits</p>
+  <h2 class="section-title reveal">Discover the <span>World</span></h2>
+  <p class="section-body reveal">
+    Cubito World is packed with content — from deep inventory systems to unique characters and creatures.
+    Every corner hides something new.
+  </p>
+  <div class="features-grid">
+    <div class="feature-card reveal">
+      <span class="feature-icon">⚔️</span>
+      <div class="feature-title">Rich Combat</div>
+      <p class="feature-desc">Face dangerous enemies and bosses across a vast world filled with loot, traps, and surprises around every corner.</p>
+    </div>
+    <div class="feature-card reveal">
+      <span class="feature-icon">🎒</span>
+      <div class="feature-title">Deep Inventory</div>
+      <p class="feature-desc">Hundreds of unique items, weapons, and resources — each with its own stats, lore, and value waiting to be discovered.</p>
+    </div>
+    <div class="feature-card reveal">
+      <span class="feature-icon">🧑‍🎤</span>
+      <div class="feature-title">Player Skins</div>
+      <p class="feature-desc">Express yourself with a wide selection of character skins — cosmetics that make your hero truly your own.</p>
+    </div>
+    <div class="feature-card reveal">
+      <span class="feature-icon">🐾</span>
+      <div class="feature-title">Pet Companions</div>
+      <p class="feature-desc">Collect and raise unique pets that follow you on your journey, each with their own look and personality.</p>
+    </div>
+    <div class="feature-card reveal">
+      <span class="feature-icon">🗺️</span>
+      <div class="feature-title">Vast Exploration</div>
+      <p class="feature-desc">A handcrafted world full of biomes, hidden dungeons, and secrets that reward curious adventurers.</p>
+    </div>
+    <div class="feature-card reveal">
+      <span class="feature-icon">✨</span>
+      <div class="feature-title">Regular Updates</div>
+      <p class="feature-desc">New content, skins, items, and events added regularly — Cubito World is always growing.</p>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"><div class="section-divider-icon"></div></div>
+
+<!-- RESOURCES CTA -->
+<section class="section" id="resources" style="padding-top:60px;padding-bottom:40px;">
+  <p class="section-label reveal">Explore the Content</p>
+  <h2 class="section-title reveal">Game <span>Resources</span></h2>
+  <p class="section-body reveal">
+    Browse every item, skin, and pet in Cubito World — our interactive resource browser
+    lets you explore all in-game content before launch.
+  </p>
+  <div style="text-align:center;" class="reveal">
+    <a href="CubitoResourceExport/index.html" class="btn-steam" target="_blank" style="display:inline-flex;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Open Game Resources
+    </a>
+  </div>
+</section>
+
+<!-- WISHLIST BANNER -->
+<div class="cta-banner" id="wishlist">
+  <div class="cta-inner reveal">
+    <h2 class="cta-title">Wishlist <span>Now</span> on Steam</h2>
+    <p class="cta-sub">Be the first to know when Cubito World launches. Add it to your Steam wishlist and never miss an update.</p>
+    <div class="cta-badges">
+      <span class="badge badge-gold">Coming Soon</span>
+      <span class="badge">PC</span>
+      <span class="badge">Adventure</span>
+      <span class="badge">Exploration</span>
+      <span class="badge">RPG</span>
+    </div>
+    <a href="https://store.steampowered.com/wishlist/" class="btn-steam" target="_blank" rel="noopener" style="display:inline-flex;">
+      <svg viewBox="0 0 24 24" fill="currentColor" style="width:20px;height:20px;"><path d="M11.979 0C5.678 0 .511 4.86.022 11.037l6.432 2.658c.545-.371 1.203-.59 1.912-.59.063 0 .125.004.188.006l2.861-4.142V8.91c0-2.495 2.028-4.524 4.524-4.524 2.494 0 4.524 2.029 4.524 4.524s-2.03 4.525-4.524 4.525h-.105l-4.076 2.911c0 .052.004.105.004.159 0 1.875-1.515 3.396-3.39 3.396-1.635 0-3.016-1.173-3.331-2.727L.436 15.27C1.862 20.307 6.486 24 11.979 24c6.627 0 11.999-5.373 11.999-12S18.605 0 11.979 0zM7.54 18.21l-1.473-.61c.262.543.714.999 1.314 1.25 1.297.539 2.793-.076 3.332-1.375.263-.63.264-1.319.005-1.949s-.75-1.121-1.377-1.383c-.624-.26-1.29-.249-1.878-.03l1.523.63c.956.4 1.409 1.497 1.009 2.455-.397.957-1.497 1.41-2.454 1.012H7.54zm11.415-9.303c0-1.662-1.353-3.015-3.015-3.015-1.665 0-3.015 1.353-3.015 3.015 0 1.665 1.35 3.015 3.015 3.015 1.663 0 3.015-1.35 3.015-3.015zm-5.273.016c0-1.252 1.013-2.266 2.265-2.266 1.249 0 2.266 1.014 2.266 2.266 0 1.251-1.017 2.265-2.266 2.265-1.252 0-2.265-1.014-2.265-2.265z"/></svg>
+      Add to Wishlist
+    </a>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">Cubito <span>World</span></div>
+  <div class="footer-links">
+    <a href="#features" class="footer-link">Features</a>
+    <a href="CubitoResourceExport/index.html" class="footer-link" target="_blank">Game Resources</a>
+    <a href="https://store.steampowered.com/wishlist/" class="footer-link" target="_blank" rel="noopener">Steam</a>
+  </div>
+  <p class="footer-copy">
+    &copy; <span id="year"></span> <span>Cubito World</span>. All rights reserved.
+  </p>
+  <p class="footer-legal">
+    All game content, artwork, characters, names, logos, and assets are the exclusive intellectual property of their respective owners and are fully protected under applicable copyright, trademark, and intellectual property laws. Unauthorized reproduction, distribution, or use of any content from this website or the game is strictly prohibited. Steam and the Steam logo are trademarks of Valve Corporation. All other trademarks are property of their respective owners.
+  </p>
+</footer>
+
+<script>
+document.getElementById('year').textContent = new Date().getFullYear();
+
+const hamburger = document.getElementById('hamburger');
+const mobileMenu = document.getElementById('mobileMenu');
+hamburger.addEventListener('click', function(){
+  mobileMenu.classList.toggle('open');
+});
+function closeMobile(){
+  mobileMenu.classList.remove('open');
+}
+document.querySelectorAll('a[href^="#"]').forEach(function(a){
+  a.addEventListener('click', function(e){
+    const target = document.querySelector(a.getAttribute('href'));
+    if(target){ e.preventDefault(); target.scrollIntoView({behavior:'smooth'}); }
+  });
+});
+
+const reveals = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver(function(entries){
+  entries.forEach(function(entry){
+    if(entry.isIntersecting){ entry.target.classList.add('visible'); }
+  });
+}, {threshold:0.12});
+reveals.forEach(function(el){ observer.observe(el); });
+</script>
+</body>
+</html>
